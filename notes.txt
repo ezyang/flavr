@@ -1,0 +1,30 @@
+<p class="lh1">ACHIOTE SEEDS</p>
+<p class="ul">beef</p>
+<p class="ul">chicken</p>
+<p class="ul"><strong>Mexican cuisine,</strong> esp. Yucatán oil</p> // handle 'esp' qualifier
+<p class="ul"><strong>cheese: Camembert,</strong> cheddar, goat, Gruyère</p>  // explode these
+<p class="ul"><strong>CARAMEL</strong></p>
+<p class="ul"><strong>*CINNAMON</strong></p>
+
+<p class="h4"><strong>Flavor Affinities</strong></p>
+<p class="ul">achiote + pork + sour orange</p>
+
+liqueurs, berry or orange (e.g., Cointreau, <strong>curaçao</strong>, Framboise, <strong>GRAND MARNIER</strong></p>
+
+PROBLEMS
+--------
+
+<strong>Taste:</strong> savory or savory + salty</p>
+
+IGNORE
+------
+
+<p class="p1">As a kid, I hated black jelly beans...</p>
+<p class="ca"><strong>— MICHAEL LAISKONIS,</strong> LE BERNARDIN (NEW YORK CITY)</p>
+<p class="ca3"><strong>— TONY LIU,</strong> August (New York City)</p>
+(these are interleaved)
+
+<p class="boxh"><strong>Dishes</strong></p>
+<p class="ext"><strong>Insalata A Voce: Green Apple, Marcona Almonds, Watercress, Pecorino</strong></p>
+<p class="exts">— Andrew Carmellini, A Voce (New York City)</p>
+<p class="img"><img alt="art" src="../Images/Art_P0lv.jpg" /></p>
