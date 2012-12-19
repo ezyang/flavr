@@ -1,0 +1,5 @@
+.ratelow {font-weight:normal;}
+.ratemedium {font-weight:bold}
+.ratehigh {font-weight:bold; text-transform:uppercase}
+.rateclassic {font-weight:bold; text-transform:uppercase}
+.rateclassic:before {font-weight:bold; content:"*"}

@@ -1,3 +1,9 @@
+* get rid of blank entries
+* make appropriate redirects
+* links as much as possible for sublists
+* remove bogus noise from titles (e.g. "(see ...)")
+
+
 * Primary use case: you're at the grocery store / farmer's market; what
   do you buy?
 * Needs to work for mobile (use Bootstrap? Opera doesn't like)

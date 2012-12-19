@@ -43,7 +43,7 @@ fun template title b : page = <xml>
       </h1>
     {unsafeHtml "</div><div data-role=\"content\">"}
       {b}
-    {unsafeHtml "</div></div>"}
+    {unsafeHtml "</div><div data-role=\"footer\"><h4>a remix of <a href=\"http://www.amazon.com/The-Flavor-Bible-Creativity-Imaginative/dp/0316118400\">the flavor bible</a></h4></div></div>"}
   </body>
 </xml>
 
