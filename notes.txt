@@ -1,3 +1,15 @@
+* Primary use case: you're at the grocery store / farmer's market; what
+  do you buy?
+* Needs to work for mobile (use Bootstrap? Opera doesn't like)
+* Autocomplete, should handle "MAIN, STEM" and "STEM MAIN"
+* "Here are the ingredients I have" --> what can you do / visualization
+
+MVP
+- search box
+- list of ingredients
+
+----
+
 <p class="lh1">ACHIOTE SEEDS</p>
 <p class="ul">beef</p>
 <p class="ul">chicken</p>

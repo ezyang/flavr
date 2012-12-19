@@ -79,7 +79,6 @@ pp xs a = (unsafePerformIO $ mapM_ print xs) `seq` a
 datum = ["lh", "lh1", "ul", "ul1", "ul3", "h4"]
 meta = ["p1", "ca", "img", "boxh", "ext", "exts", "ca3", "", "sbh", "sbtx1", "sbbl", "sbbl3", "sbtx", "sbtx3", "sbtx4", "box1", "sbbl1", "bl", "bl1", "bl3", "ep", "eps", "bp", "bp1", "bp3", "ext4", "sbtx11", "sbtx31"]
 
--- XXX deal with tips that bleed over into the list (maybe do an alpha check)
 filterEntry x =
     not (head (tail x) ~== TagOpen "strong" [] && innerText [head (tail (tail x))] `elem` ["Season:", "Taste:", "Weight:", "Volume:", "Botanical relatives:", "Function:", "Techniques:", "Techniques/Tips:", "Botanical relative:"])
 
@@ -88,7 +87,7 @@ handleEntry x =
         isClassic = head name == '*'
         isHigh = isMedium && (any (not . any isLower) . filter (any isAlpha) $ words name)
         isMedium = any (~== TagOpen "strong" []) x
-    in Match (map toLower name) (renderTags x) (if isClassic then Classic else if isHigh then High else if isMedium then Medium else Low)
+    in Match (map toLower . (if isClassic then tail else id) $ name) (renderTags x) (if isClassic then Classic else if isHigh then High else if isMedium then Medium else Low)
 
 strip = unwords . filter (not . null) . words
 collapse [] = []
