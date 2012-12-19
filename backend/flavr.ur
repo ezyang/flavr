@@ -6,14 +6,15 @@ style ratehigh
 style rateclassic
 style rateunknown
 
-table ingredient : { Id : int, Ingredient : string }
+table ingredient : { Id : int, Ingredient : string, Full : string }
     PRIMARY KEY Id
     CONSTRAINT Ingredient UNIQUE Ingredient
 
 (* 0 to 3, 0 = Normal, 1 = Bold, 2 = BOLD, 3 = *CLASSIC *)
-table combo : { Id : int, IngredientId : int, With : string, Rating : int }
+table combo : { Id : int, IngredientId : int, With : string, Link : string, Rating : int }
     PRIMARY KEY Id
     CONSTRAINT IngredientId FOREIGN KEY IngredientId REFERENCES ingredient(Id)
+    (* CONSTRAINT Link FOREIGN KEY Link REFERENCES ingredient(Ingredient) -- but not always! *)
 
 fun rating r =
   if r = 0 then ratelow
@@ -48,10 +49,12 @@ fun template title b : page = <xml>
 </xml>
 
 and main () : transaction page =
-  r <- queryX (SELECT ingredient.Ingredient FROM ingredient ORDER BY ingredient.Ingredient ASC)
+  r <- queryX (SELECT ingredient.Ingredient, ingredient.Full FROM ingredient ORDER BY ingredient.Ingredient ASC)
           (fn r =>
             let val x = r.Ingredient.Ingredient in
-            <xml><li><a link={display x}>{[x]}</a></li></xml>
+            <xml>{unsafeHtml (strcat (strcat "<li data-filtertext=\"" r.Ingredient.Full) "\">")}
+            <a link={display x}>{[x]}</a>
+            {unsafeHtml "</li>"}</xml>
             end);
   return (template "flavr" <xml>
     {decorate (fn id => addAttribute "data-role" "listview" id; addAttribute "data-filter" "true" id) (fn id => <xml><ul id={id}>
@@ -61,8 +64,8 @@ and main () : transaction page =
 
 (* Very delicately avoid all dynamic-ness, so that jQuery Mobile's AJAX can do its magic *)
 and display (ing : string) : transaction page =
-  r <- queryX (SELECT combo.With, combo.Rating FROM combo INNER JOIN ingredient ON ingredient.Id = combo.IngredientId WHERE ingredient.Ingredient = {[ing]})
-         (fn r => <xml><li class={rating r.Combo.Rating}>{[r.Combo.With]}</li></xml>);
+  r <- queryX (SELECT combo.With, combo.Link, combo.Rating FROM combo INNER JOIN ingredient ON ingredient.Id = combo.IngredientId WHERE ingredient.Ingredient = {[ing]})
+         (fn r => <xml><li class={rating r.Combo.Rating}><a link={display r.Combo.Link}>{[r.Combo.With]}</a></li></xml>);
   return (template ing <xml>
     {unsafeHtml "<ul data-role=\"listview\">"}
     {r}

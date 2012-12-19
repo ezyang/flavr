@@ -26,13 +26,15 @@ import Data.String
 
 data Rating = Low | Medium | High | Classic
     deriving (Show, Eq, Ord, Enum)
-data Entry = Entry { name :: String, matches :: [Combo] }
+data Entry = Entry { name :: String, full :: String, matches :: [Combo] }
     deriving (Show)
-data Combo = Combo { matchName :: String, orig :: String, rating :: Rating }
+data Combo = Combo { matchName :: String, link :: String, rating :: Rating }
     deriving Show
 -- note that "Low" is still a real pairing!
 
-handleFile = map handleIngredient
+-- mapM_ putStrLn . map full . filter (null . matches) $ r
+handleFile = filter (not . null . matches) -- XXX aliases are useful info
+           . map handleIngredient
            . partitions (\x -> x ~== TagOpen "p" [("class", "lh1")] || x ~== TagOpen "p" [("class", "lh")])
 
 -- XXX deal with commas (contains "and")
@@ -48,7 +50,7 @@ tag t = parsePred (any (~== t))
 ptag cl = tag (TagOpen "p" [("class", cl)])
 
 parseIngredient = do
-    ingredient <- fmap (strip . map toLower . innerText) (ptag "lh" <|> ptag "lh1")
+    fullingredient <- fmap (strip . map toLower . innerText) (ptag "lh" <|> ptag "lh1")
     -- sometimes the preamble is marked in the classes; take advantage
     -- appropriately
     many (try (many (ptag "ul") >> many1 (ptag "ul3")))
@@ -67,7 +69,8 @@ parseIngredient = do
                 . map (takeWhile (~/= TagClose "p")) -- doesn't work if there is nested p, fortunately, there is not!
                 . takeWhile (all (~/= TagText "AVOID"))
                 $ matches'
-    return (Entry ingredient matches)
+        ingredient = removeParentheticals fullingredient
+    return (Entry ingredient fullingredient matches)
 
 handleIngredient x =
     let Right r = runParser parseIngredient () "<unknown>"            -- regex over token structure
@@ -79,6 +82,13 @@ handleIngredient x =
 rt a = trace (show a) $ a
 pp xs a = (unsafePerformIO $ mapM_ print xs) `seq` a
 
+removeParentheticals x =
+ strip $ case span (/= '(') x of
+            (a@"african cuisine ", r) -> case r of
+                '(':'s':'e':_ -> a
+                _ -> a ++ "(" ++ takeWhile (/= '(') (tail r)
+            (r,_) -> r
+
 datum = ["lh", "lh1", "ul", "ul1", "ul3", "h4"]
 meta = ["p1", "ca", "img", "boxh", "ext", "exts", "ca3", "", "sbh", "sbtx1", "sbbl", "sbbl3", "sbtx", "sbtx3", "sbtx4", "box1", "sbbl1", "bl", "bl1", "bl3", "ep", "eps", "bp", "bp1", "bp3", "ext4", "sbtx11", "sbtx31"]
 
@@ -86,11 +96,15 @@ filterEntry x =
     not (head (tail x) ~== TagOpen "strong" [] && innerText [head (tail (tail x))] `elem` ["Season:", "Taste:", "Weight:", "Volume:", "Botanical relatives:", "Function:", "Techniques:", "Techniques/Tips:", "Botanical relative:"])
 
 handleEntry x =
-    let name = strip . innerText $ x
-        isClassic = head name == '*'
-        isHigh = isMedium && (any (not . any isLower) . filter (any isAlpha) $ words name)
+    let rawname = strip . innerText $ x
+        name = map toLower . (if isClassic then tail else id) $ rawname
+        isClassic = head rawname == '*'
+        isHigh = isMedium && (any (not . any isLower) . filter (any isAlpha) $ words rawname)
         isMedium = any (~== TagOpen "strong" []) x
-    in Combo (map toLower . (if isClassic then tail else id) $ name) (renderTags x) (if isClassic then Classic else if isHigh then High else if isMedium then Medium else Low)
+    in Combo
+        name
+        (removeParentheticals name)
+        (if isClassic then Classic else if isHigh then High else if isMedium then Medium else Low)
 
 strip = unwords . filter (not . null) . words
 collapse [] = []
@@ -103,12 +117,13 @@ as = sort ((map (:[]) (['a'..'i'] ++ ['m','s','t'])) ++ ["jkl", "nop", "qr"])
 v a = unsafePerformIO $ readFile ("TFB/OEBPS/Text/FlavorBible_chap-3" ++ a ++ ".html")
 r = concatMap (handleFile . parseTags) $ map v as
 
--- XXX UTF-8?
 writeOut = do
     h <- open "backend/flavr.sqlite3"
-    forM_ r $ \(Entry nm ms) -> do
-        execute h (fromString "insert into uw_Flavr_ingredient (uw_ingredient) values (?)") (Only nm)
-        (Only id:_) <- query_ h (fromString "select last_insert_rowid() from uw_Flavr_ingredient")
-        forM_ ms $ \(Combo with _ rating) -> do
-            execute h (fromString "insert into uw_Flavr_combo (uw_ingredientid, uw_with, uw_rating) values (?,?,?)") (id :: Int, with, fromEnum rating)
+    forM_ r $ \(Entry nm fnm ms) -> do
+        execute h (fromString "insert into uw_ingredient (uw_ingredient, uw_full) values (?, ?)") (nm, fnm)
+        (Only id:_) <- query_ h (fromString "select last_insert_rowid() from uw_ingredient")
+        forM_ ms $ \(Combo with link rating) -> do
+            execute h (fromString "insert into uw_combo (uw_ingredientid, uw_with, uw_link, uw_rating) values (?,?,?,?)") (id :: Int, with, link, fromEnum rating)
     close h
+
+main = writeOut

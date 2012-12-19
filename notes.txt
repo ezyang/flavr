@@ -1,7 +1,6 @@
-* get rid of blank entries
-* make appropriate redirects
-* links as much as possible for sublists
-* remove bogus noise from titles (e.g. "(see ...)")
+* blank entries should turn into aliases for filter search!!! (make appropriate redirects)
+* kill dead links with some pre-processing
+* some useful title information is gone, identify what it is
 
 
 * Primary use case: you're at the grocery store / farmer's market; what

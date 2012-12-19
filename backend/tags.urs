@@ -8,3 +8,4 @@ val div : bodyTag ([Data-role = string] ++ boxAttrs)
 
 val unsafeHtml : ctx ::: {Unit} -> use ::: {Type} -> string -> xml ctx use []
 val addAttribute : string -> string -> id -> transaction unit
+val refreshListview : id -> transaction unit

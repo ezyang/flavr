@@ -1,5 +1,6 @@
 benignEffectful Tags.addAttribute
 jsFunc Tags.addAttribute=addAttribute
+jsFunc Tags.refreshListview=refreshListview
 ffi tags
 link tags.o
 include tags.h
