@@ -1,2 +1,2 @@
 val main : unit -> transaction page
-val show : string -> transaction page
+val display : string -> transaction page

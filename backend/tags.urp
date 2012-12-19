@@ -1,0 +1,6 @@
+benignEffectful Tags.addAttribute
+jsFunc Tags.addAttribute=addAttribute
+ffi tags
+link tags.o
+include tags.h
+script http://localhost/flavr/backend/ffi.js
