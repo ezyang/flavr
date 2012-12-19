@@ -11,14 +11,14 @@ do
     reset
     pkill -f $NAME.exe
     (
-        urweb $URWEB_FLAGS $NAME && \
+        gcc -c tags.c -o tags.o && \
+        urweb -dbms sqlite -db flavr.sqlite3 $URWEB_FLAGS $NAME && \
         ./$NAME.exe
         #(./$NAME.exe &) && \
         #sleep 1 && \
         #(curl "http://localhost:8080/main" &> /dev/null)
     ) &
     PID=$!
-    inotifywait -e modify *.ur *.urs 2> /dev/null
-    #inotifywait -e modify $(git ls-files '*.ur' '*.urp' '*.urs' '*.c' '*.h') 2> /dev/null
+    inotifywait -e modify $(git ls-files '*.ur' '*.urp' '*.urs') 2> /dev/null
     kill $PID
 done

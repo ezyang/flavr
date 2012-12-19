@@ -6,6 +6,9 @@ import Control.Exception hiding (try)
 import System.IO.Unsafe
 import Text.Parsec
 import Text.Parsec.Pos
+import Database.SQLite.Simple
+import Control.Monad
+import Data.String
 
 -- OK what visualizations do we want:
 --      * a graph (this implies we need to de-duplicate, clean up the
@@ -23,9 +26,9 @@ import Text.Parsec.Pos
 
 data Rating = Low | Medium | High | Classic
     deriving (Show, Eq, Ord, Enum)
-data Entry = Entry { name :: String, matches :: [Match] }
+data Entry = Entry { name :: String, matches :: [Combo] }
     deriving (Show)
-data Match = Match { matchName :: String, orig :: String, rating :: Rating }
+data Combo = Combo { matchName :: String, orig :: String, rating :: Rating }
     deriving Show
 -- note that "Low" is still a real pairing!
 
@@ -87,7 +90,7 @@ handleEntry x =
         isClassic = head name == '*'
         isHigh = isMedium && (any (not . any isLower) . filter (any isAlpha) $ words name)
         isMedium = any (~== TagOpen "strong" []) x
-    in Match (map toLower . (if isClassic then tail else id) $ name) (renderTags x) (if isClassic then Classic else if isHigh then High else if isMedium then Medium else Low)
+    in Combo (map toLower . (if isClassic then tail else id) $ name) (renderTags x) (if isClassic then Classic else if isHigh then High else if isMedium then Medium else Low)
 
 strip = unwords . filter (not . null) . words
 collapse [] = []
@@ -99,3 +102,13 @@ collapse (x:xs) = x : go x xs
 as = sort ((map (:[]) (['a'..'i'] ++ ['m','s','t'])) ++ ["jkl", "nop", "qr"])
 v a = unsafePerformIO $ readFile ("TFB/OEBPS/Text/FlavorBible_chap-3" ++ a ++ ".html")
 r = concatMap (handleFile . parseTags) $ map v as
+
+-- XXX UTF-8?
+writeOut = do
+    h <- open "backend/flavr.sqlite3"
+    forM_ r $ \(Entry nm ms) -> do
+        execute h (fromString "insert into uw_Flavr_ingredient (uw_ingredient) values (?)") (Only nm)
+        (Only id:_) <- query_ h (fromString "select last_insert_rowid() from uw_Flavr_ingredient")
+        forM_ ms $ \(Combo with _ rating) -> do
+            execute h (fromString "insert into uw_Flavr_combo (uw_ingredientid, uw_with, uw_rating) values (?,?,?)") (id :: Int, with, fromEnum rating)
+    close h
