@@ -1,8 +1,10 @@
 sql flavr.sql
 database flavr.sqlite3
 allow url http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css
+allow url http://localhost/flavr/backend/flavr.css
 script http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
 script http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js
 library tags
+rewrite all Flavr/*
 
 flavr

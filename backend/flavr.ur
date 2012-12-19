@@ -1,12 +1,26 @@
 open Tags
 
+style ratelow
+style ratemedium
+style ratehigh
+style rateclassic
+style rateunknown
+
 table ingredient : { Id : int, Ingredient : string }
     PRIMARY KEY Id
     CONSTRAINT Ingredient UNIQUE Ingredient
 
+(* 0 to 3, 0 = Normal, 1 = Bold, 2 = BOLD, 3 = *CLASSIC *)
 table combo : { Id : int, IngredientId : int, With : string, Rating : int }
     PRIMARY KEY Id
     CONSTRAINT IngredientId FOREIGN KEY IngredientId REFERENCES ingredient(Id)
+
+fun rating r =
+  if r = 0 then ratelow
+  else if r = 1 then ratemedium
+  else if r = 2 then ratehigh
+  else if r = 3 then rateclassic
+  else rateunknown
 
 fun decorate cb xb =
   <xml><active code={
@@ -17,10 +31,12 @@ fun decorate cb xb =
 fun template title b : page = <xml>
   <head>
     <link rel="stylesheet" type="text/css" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+    <link rel="stylesheet" type="text/css" href="http://localhost/flavr/backend/flavr.css" />
     {unsafeHtml "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"}
   </head>
   <body>
     {unsafeHtml "<div data-role=\"page\"><div data-role=\"header\">"}
+      (* For some odd reason this particular markup cannot be done dynamically *)
       {unsafeHtml (strcat (strcat "<a href=\"" (show (url (main ())))) "\" data-icon=\"home\">Home</a>")}
       <h1>
         {[title]}
@@ -43,26 +59,12 @@ and main () : transaction page =
     </ul></xml>)}
   </xml>)
 
-(*
-  ing <- source "";
-  ingid <- fresh;
-    {decorate (addAttribute "class" "ui-hidden-accessible") (fn id => <xml><label for={ingid} id={id}>Ingredient:</label></xml>)}
-    <ctextbox source={ing} id={ingid}/>
-    <active code={addAttribute "placeholder" "Ingredient" ingid; return <xml/>} />
-    <button value="Go" onclick={fn _ => i <- get ing; redirect (url (display i)) }/>
-*)
-
+(* Very delicately avoid all dynamic-ness, so that jQuery Mobile's AJAX can do its magic *)
 and display (ing : string) : transaction page =
-  r <- queryX (SELECT combo.With FROM combo INNER JOIN ingredient ON ingredient.Id = combo.IngredientId WHERE ingredient.Ingredient = {[ing]})
-         (fn r => <xml><li>{[r.Combo.With]}</li></xml>);
+  r <- queryX (SELECT combo.With, combo.Rating FROM combo INNER JOIN ingredient ON ingredient.Id = combo.IngredientId WHERE ingredient.Ingredient = {[ing]})
+         (fn r => <xml><li class={rating r.Combo.Rating}>{[r.Combo.With]}</li></xml>);
   return (template ing <xml>
     {unsafeHtml "<ul data-role=\"listview\">"}
     {r}
     {unsafeHtml "</ul>"}
   </xml>)
-
-(*
-    {decorate (addAttribute "data-role" "listview") (fn id => <xml><ul id={id}>
-      {r}
-    </ul></xml>)}
-    *)
